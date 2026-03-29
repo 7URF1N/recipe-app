@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>ReseptiApp</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
+    nav { display: flex; gap: 16px; padding: 10px 0; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+    nav a { text-decoration: none; color: #333; }
+    nav a:hover { color: #e07020; }
+    .flash { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 16px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button, .btn { padding: 8px 18px; background: #e07020; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+    button:hover, .btn:hover { background: #c05010; }
+    .btn-danger { background: #dc3545; }
+    .btn-secondary { background: #6c757d; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+  </style>
+</head>
+<body>
+  {% if g.user %}
+  <nav>
+    <a href="{{ url_for('items.index') }}">Reseptit</a>
+    <a href="{{ url_for('items.new_recipe') }}">+ Lisää</a>
+    <a href="{{ url_for('users.profile') }}">Profiili ({{ g.user['username'] }})</a>
+    <a href="{{ url_for('users.logout') }}">Kirjaudu ulos</a>
+  </nav>
+  {% endif %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</body>
+</html>

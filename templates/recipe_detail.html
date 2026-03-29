@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('items.index') }}">← Takaisin</a>
+<h2>{{ recipe['name'] }}</h2>
+<p><strong>Kategoria:</strong> {{ recipe['category'] }} | <strong>Lisääjä:</strong> {{ recipe['username'] }}</p>
+{% if avg %}<p>⭐ Keskiarvio: {{ avg }}/5</p>{% endif %}
+
+<h4>Ainesosat</h4>
+<p style="white-space:pre-line">{{ recipe['ingredients'] }}</p>
+<h4>Valmistusohjeet</h4>
+<p style="white-space:pre-line">{{ recipe['instructions'] }}</p>
+
+{% if recipe['user_id'] == g.user['id'] %}
+<p>
+  <a href="{{ url_for('items.edit_recipe', id=recipe['id']) }}" class="btn btn-secondary">Muokkaa</a>
+  <form method="post" action="{{ url_for('items.delete_recipe', id=recipe['id']) }}" style="display:inline">
+    <button class="btn btn-danger" onclick="return confirm('Poistetaanko?')">Poista</button>
+  </form>
+</p>
+{% endif %}
+
+<hr>
+<h3>Arviot ({{ comments|length }})</h3>
+
+<form method="post" action="{{ url_for('items.add_comment', id=recipe['id']) }}" style="max-width:500px">
+  <label>Tähtiarvio</label>
+  <select name="stars" style="width:auto">
+    <option value="1">1 ⭐</option>
+    <option value="2">2 ⭐</option>
+    <option value="3">3 ⭐</option>
+    <option value="4">4 ⭐</option>
+    <option value="5">5 ⭐</option>
+  </select>
+  <label>Kommentti (vapaaehtoinen)</label>
+  <textarea name="content" rows="3"></textarea>
+  <button type="submit">Lähetä arvio</button>
+</form>
+
+{% for c in comments %}
+<div style="border:1px solid #eee;padding:10px;margin-top:10px;border-radius:6px">
+  <strong>{{ c['username'] }}</strong> — {{ c['stars'] }} ⭐ <small>{{ c['created_at'][:10] }}</small>
+  {% if c['content'] %}<p>{{ c['content'] }}</p>{% endif %}
+  {% if c['user_id'] == g.user['id'] %}
+    <form method="post" action="{{ url_for('items.delete_comment', id=c['id']) }}" style="display:inline">
+      <button class="btn btn-danger" style="padding:4px 10px;font-size:0.8em">Poista</button>
+    </form>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Profiili</h2>
+<p><strong>Käyttäjä:</strong> {{ g.user['username'] }}</p>
+<p><strong>Omia reseptejä:</strong> {{ recipe_count }}</p>
+<p><strong>Jätettyjä kommentteja:</strong> {{ comment_count }}</p>
+{% endblock %}

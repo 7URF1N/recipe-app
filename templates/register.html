@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Luo tunnus</h2>
+<form method="post" style="max-width:360px">
+  <label>Käyttäjänimi</label>
+  <input type="text" name="username" required>
+  <label>Salasana</label>
+  <input type="password" name="password" required>
+  <button type="submit">Luo tili</button>
+</form>
+<p>Jo tunnus? <a href="{{ url_for('users.login') }}">Kirjaudu</a></p>
+{% endblock %}
