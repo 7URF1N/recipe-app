@@ -102,8 +102,6 @@ Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
 
 ## Sovelluksen testaaminen
 
-Vertaisarvioija voi kokeilla sovellusta näin:
-
 1. Avaa selain osoitteessa <http://127.0.0.1:5000>. Etusivu näkyy myös ilman
    kirjautumista.
 2. Klikkaa **Rekisteröidy** ja luo uusi tunnus (esim. `testi` / `salasana`).
