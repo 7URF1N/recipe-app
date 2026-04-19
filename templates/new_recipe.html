@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>New recipe</h1>
+
+<form action="/create_recipe" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <p>
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" maxlength="100" required>
+    </p>
+
+    <p>
+        <label for="ingredients">Ingredients:</label><br>
+        <textarea id="ingredients" name="ingredients"
+                  rows="6" cols="40" maxlength="5000" required></textarea>
+    </p>
+
+    <p>
+        <label for="instructions">Instructions:</label><br>
+        <textarea id="instructions" name="instructions"
+                  rows="10" cols="40" maxlength="10000" required></textarea>
+    </p>
+
+    <fieldset class="classes">
+        <legend>Categories</legend>
+        <p class="hint">You can select one or more categories.</p>
+        {% for title, values in classes.items() %}
+        <div class="class-group">
+            <strong>{{ title }}</strong><br>
+            {% for value in values %}
+                <label class="checkbox">
+                    <input type="checkbox"
+                           name="classes_{{ title }}"
+                           value="{{ value }}">
+                    {{ value }}
+                </label>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </fieldset>
+
+    <p class="actions">
+        <input class="btn" type="submit" value="Save">
+        <a class="btn btn-secondary" href="/">Cancel</a>
+    </p>
+</form>
+{% endblock %}

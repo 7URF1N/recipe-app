@@ -1,26 +1,36 @@
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS recipes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE recipes (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users,
     name TEXT NOT NULL,
-    category TEXT NOT NULL,
     ingredients TEXT NOT NULL,
     instructions TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipe_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
+CREATE TABLE classes (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    value TEXT NOT NULL
+);
+
+CREATE TABLE recipe_classes (
+    id INTEGER PRIMARY KEY,
+    recipe_id INTEGER NOT NULL REFERENCES recipes ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    value TEXT NOT NULL
+);
+
+CREATE TABLE comments (
+    id INTEGER PRIMARY KEY,
+    recipe_id INTEGER NOT NULL REFERENCES recipes ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users,
+    content TEXT NOT NULL,
     stars INTEGER NOT NULL,
-    content TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (recipe_id) REFERENCES recipes(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

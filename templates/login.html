@@ -1,12 +1,23 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
+
 {% block content %}
-<h2>Kirjaudu sisään</h2>
-<form method="post" style="max-width:360px">
-  <label>Käyttäjänimi</label>
-  <input type="text" name="username" required>
-  <label>Salasana</label>
-  <input type="password" name="password" required>
-  <button type="submit">Kirjaudu</button>
+<h1>Sign in</h1>
+
+<form action="/login" method="post">
+    <p>
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" maxlength="20" required>
+    </p>
+
+    <p>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required>
+    </p>
+
+    <p class="actions">
+        <input class="btn" type="submit" value="Sign in">
+    </p>
 </form>
-<p>Ei tunnusta? <a href="{{ url_for('users.register') }}">Rekisteröidy</a></p>
+
+<p>Don’t you have an account? <a href="/register">Sign up here</a>.</p>
 {% endblock %}

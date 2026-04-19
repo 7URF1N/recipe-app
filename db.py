@@ -1,14 +1,32 @@
 import sqlite3
 from flask import g
 
-def get_db():
-    if "db" not in g:
-        from flask import current_app
-        g.db = sqlite3.connect(current_app.config["DATABASE"])
-        g.db.row_factory = sqlite3.Row
-    return g.db
+def get_connection():
+    con = sqlite3.connect("database.db")
+    con.execute("PRAGMA foreign_keys = ON")
+    con.row_factory = sqlite3.Row
+    return con
 
-def close_db(e=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+def execute(sql, params=None):
+    if params is None:
+        params = []
+    con = get_connection()
+    try:
+        result = con.execute(sql, params)
+        con.commit()
+        g.last_insert_id = result.lastrowid
+    finally:
+        con.close()
+
+def last_insert_id():
+    return g.get("last_insert_id", None)
+
+def query(sql, params=None):
+    if params is None:
+        params = []
+    con = get_connection()
+    try:
+        result = con.execute(sql, params).fetchall()
+    finally:
+        con.close()
+    return result

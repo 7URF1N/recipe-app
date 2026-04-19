@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Delete recipe</h1>
+
+<p>Are you sure you want to delete the recipe? <strong>{{ recipe.name }}</strong>?</p>
+<p class="hint">All comments on the recipe will be deleted as well.</p>
+
+<form action="/remove_recipe/{{ recipe.id }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <p class="actions">
+        <input class="btn btn-danger" type="submit" name="remove" value="Yes, delete">
+        <input class="btn btn-secondary" type="submit" name="cancel" value="No, cancel">
+    </p>
+</form>
+{% endblock %}

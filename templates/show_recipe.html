@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>{{ recipe.name }}</h1>
+
+<p class="meta">
+    Added <a href="/user/{{ recipe.user_id }}">{{ recipe.username }}</a>
+    &middot; {{ recipe.created_at }}
+    {% if avg_stars %}
+        &middot; Average: {{ avg_stars }} / 5 ({{ comments|length }} rating{{ 't' if comments|length != 1 else '' }})
+    {% endif %}
+</p>
+
+{% if classes %}
+<p class="tags">
+    {% for c in classes %}
+        <span class="tag">{{ c.title }}: {{ c.value }}</span>
+    {% endfor %}
+</p>
+{% endif %}
+
+<h2>Ingredients</h2>
+<pre class="block">{{ recipe.ingredients }}</pre>
+
+<h2>Instructions</h2>
+<pre class="block">{{ recipe.instructions }}</pre>
+
+{% if session.user_id == recipe.user_id %}
+<p class="actions">
+    <a class="btn" href="/edit_recipe/{{ recipe.id }}">Edit</a>
+    <a class="btn btn-danger" href="/remove_recipe/{{ recipe.id }}">Delete</a>
+</p>
+{% endif %}
+
+<hr>
+
+<h2>Comments and reviews</h2>
+
+{% if session.user_id %}
+<form action="/create_comment" method="post" class="comment-form">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+
+    <p>
+        <label for="stars">Stars (1–5):</label>
+        <select name="stars" id="stars" required>
+            {% for n in [1, 2, 3, 4, 5] %}
+                <option value="{{ n }}">{{ n }}</option>
+            {% endfor %}
+        </select>
+    </p>
+
+    <p>
+        <label for="content">Comment:</label><br>
+        <textarea name="content" id="content" rows="3" cols="40"
+                  maxlength="1000" required></textarea>
+    </p>
+
+    <p><input class="btn" type="submit" value="Send comment"></p>
+</form>
+{% else %}
+<p><a href="/login">Sign in</a> to comment.</p>
+{% endif %}
+
+{% if comments %}
+<ul class="comment-list">
+    {% for c in comments %}
+    <li>
+        <p class="meta">
+            <strong>{{ c.stars }}/5</strong> &middot;
+            <a href="/user/{{ c.user_id }}">{{ c.username }}</a>
+            &middot; {{ c.created_at }}
+        </p>
+        <p>{{ c.content }}</p>
+        {% if session.user_id == c.user_id %}
+        <form action="/remove_comment/{{ c.id }}" method="post" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <input class="btn btn-small" type="submit" value="Delete">
+        </form>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No comments yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,35 +1,124 @@
 # ReseptiApp
-Pythonilla ja Flaskilla rakennettu full-stack -verkkosovellus, joka mahdollistaa käyttäjille reseptien luomisen, tarkastelun ja hallinnan.
+
+Flaskilla ja SQLitellä toteutettu verkkosovellus, jonka avulla käyttäjät voivat
+lisätä, selata ja arvioida ruokareseptejä.
+
+## Sovelluksen toiminnot
+
+- Etusivu näyttää kaikki lisätyt reseptit sekä sovelluksen tilastot
+  (reseptien, käyttäjien ja kommenttien määrät). **Etusivun voi nähdä myös
+  ilman kirjautumista.**
+- Käyttäjä voi rekisteröityä ja kirjautua sisään. Salasanat tallennetaan
+  hashattuna (werkzeug).
+- Kirjautunut käyttäjä voi lisätä uuden reseptin, jolle annetaan nimi,
+  ainekset, ohjeet sekä yksi tai useampi luokittelu.
+- Luokittelut ovat valmiiksi tietokannassa. Jokaiselle reseptille voi valita
+  arvoja kategorioista **Tyyppi**, **Keittiö** ja **Ruokavalio**.
+- Käyttäjä voi muokata ja poistaa vain omia reseptejään.
+- Käyttäjä voi jättää **toisen käyttäjän reseptiin** kommentin ja tähtiarvion
+  (1–5). Kommentit näkyvät reseptin sivulla, ja reseptin keskiarvo lasketaan
+  arvioista.
+- Käyttäjäsivu näyttää käyttäjän lisäämät reseptit sekä tilastot: kuinka monta
+  reseptiä ja kommenttia käyttäjä on lisännyt, kuinka monta kommenttia hänen
+  resepteihinsä on jätetty ja mikä on reseptien keskimääräinen arvio.
+- Hakutoiminto hakee reseptin nimen tai aineksen perusteella.
+- Lomakkeet on suojattu **CSRF-tokeneilla** kurssimateriaalin mallin mukaisesti.
 
 ## Asennus ja käynnistys
-1. git clone https://github.com/7URF1N/recipe-app
 
-2. cd recipe_app 
+Sovellus toimii Windowsissa, macOSissa ja Linuxissa. Alla olevat ohjeet on
+testattu Python 3.10+ -versiolla.
 
-3. python -m venv venv
+### 1. Kloonaa repository
 
-4. Windows:
+```
+git clone https://github.com/7URF1N/recipe-app
+cd recipe-app
+```
+
+### 2. Luo ja aktivoi virtuaaliympäristö
+
+**Windows (PowerShell):**
+```
+python -m venv venv
 venv\Scripts\activate
-Mac:
-venv/bin/activate
+```
 
-5. pip install flask
-set FLASK_APP=app.py
-flask init-db
+**macOS / Linux:**
+```
+python3 -m venv venv
+source venv/bin/activate
+```
 
-huom jos tulee ongelma on vanha recipes.db jossa on eri rakenne. Poista se ja luo uusi eli:
-del recipes.db
-set FLASK_APP=app.py
-flask init-db
+### 3. Asenna riippuvuudet
 
-6. python app.py
+```
+pip install flask
+```
 
-7. Avaa: http://127.0.0.1:5000
+### 4. Luo tietokanta
 
-## Toiminnot
+Luodaan ensin taulut ja sitten täytetään luokittelujen aloitusdata:
 
-- Rekisteröinti ja kirjautuminen
-- Reseptien lisäys, muokkaus, poisto
-- Haku nimellä tai ainesosalla + kategoriafiltteri
-- Arviot ja kommentit (toissijainen tietokohde)
-- Profiilisivu
+**Windows (PowerShell):**
+```
+sqlite3 database.db < schema.sql
+sqlite3 database.db < init.sql
+```
+
+**macOS / Linux:**
+```
+sqlite3 database.db < schema.sql
+sqlite3 database.db < init.sql
+```
+
+Jos koneessasi ei ole `sqlite3`-komentorivityökalua, voit luoda tietokannan
+Pythonilla:
+
+```
+python -c "import sqlite3; con=sqlite3.connect('database.db'); \
+con.executescript(open('schema.sql').read()); \
+con.executescript(open('init.sql').read()); con.commit(); con.close()"
+```
+
+Jos sinulla on jo vanha `database.db`, poista se ennen kuin luot uuden:
+
+- Windows: `del database.db`
+- macOS / Linux: `rm database.db`
+
+### 5. Käynnistä sovellus
+
+```
+flask --app app run
+```
+
+tai vaihtoehtoisesti:
+
+```
+python app.py
+```
+
+Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
+
+## Sovelluksen testaaminen
+
+Vertaisarvioija voi kokeilla sovellusta näin:
+
+1. Avaa selain osoitteessa <http://127.0.0.1:5000>. Etusivu näkyy myös ilman
+   kirjautumista.
+2. Klikkaa **Rekisteröidy** ja luo uusi tunnus (esim. `testi` / `salasana`).
+3. Kirjaudu sisään.
+4. Klikkaa **Uusi resepti**. Täytä nimi, ainekset ja ohjeet. Valitse
+   luokitteluja eri kategorioista (esim. Tyyppi: *Pääruoka*, Keittiö:
+   *Italialainen*, Ruokavalio: *Kasvis*). Paina **Tallenna**.
+5. Siirry reseptin sivulle etusivun kautta. Kokeile **Muokkaa**- ja
+   **Poista**-nappeja.
+6. Luo toinen tunnus ja kirjaudu sillä sisään. Avaa ensimmäisen käyttäjän
+   resepti ja jätä siihen kommentti sekä tähtiarvio. Kommentin pitäisi näkyä
+   reseptin sivulla, ja reseptin keskiarvon pitäisi päivittyä.
+7. Klikkaa navigointipalkissa käyttäjänimeäsi. Käyttäjäsivu näyttää tilastot
+   ja omat reseptisi.
+8. Kokeile hakutoimintoa navigointipalkin **Haku**-linkin kautta.
+
+Vieras-avaimet on päällä (`PRAGMA foreign_keys = ON`), joten reseptin
+poistaminen poistaa automaattisesti myös sen kommentit ja luokittelut.

@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>User: {{ user.username }}</h1>
+
+<section class="stats">
+    <div class="stat-box">
+        <div class="stat-num">{{ stats.recipes }}</div>
+        <div class="stat-label">added recipe</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-num">{{ stats.comments_given }}</div>
+        <div class="stat-label">given comment</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-num">{{ stats.comments_received }}</div>
+        <div class="stat-label">comments received</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-num">
+            {% if stats.avg_stars %}{{ stats.avg_stars }}{% else %}–{% endif %}
+        </div>
+        <div class="stat-label">average rating of recipes</div>
+    </div>
+</section>
+
+<h2>{{ user.username }}:n receips</h2>
+
+{% if recipes %}
+<ul class="recipe-list">
+    {% for recipe in recipes %}
+    <li>
+        <a href="/recipe/{{ recipe.id }}">{{ recipe.name }}</a>
+        <span class="meta">{{ recipe.created_at }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No recipes.</p>
+{% endif %}
+{% endblock %}

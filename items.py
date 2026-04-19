@@ -1,121 +1,96 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g, abort
-from db import get_db
-from users import login_required
+import db
 
-items_bp = Blueprint("items", __name__)
-CATEGORIES = ["keitto", "pääruoka", "salaatti", "jälkiruoka", "juoma", "välipala", "muu"]
+def get_all_classes():
+    """Returns the database classifications in the format {title: [values]}."""
+    sql = "SELECT title, value FROM classes ORDER BY id"
+    rows = db.query(sql)
+    classes = {}
+    for row in rows:
+        classes.setdefault(row["title"], []).append(row["value"])
+    return classes
 
-@items_bp.route("/recipes")
-@login_required
-def index():
-    db = get_db()
-    q = request.args.get("q", "")
-    cat = request.args.get("category", "")
-    sql = "SELECT r.*, u.username FROM recipes r JOIN users u ON r.user_id = u.id WHERE 1=1"
-    params = []
-    if q:
-        sql += " AND (r.name LIKE ? OR r.ingredients LIKE ?)"
-        params += [f"%{q}%", f"%{q}%"]
-    if cat:
-        sql += " AND r.category = ?"
-        params.append(cat)
-    recipes = db.execute(sql, params).fetchall()
-    return render_template("index.html", recipes=recipes, categories=CATEGORIES, q=q, cat=cat)
+def add_recipe(name, ingredients, instructions, user_id, classes):
+    sql = """INSERT INTO recipes (name, ingredients, instructions, user_id)
+             VALUES (?, ?, ?, ?)"""
+    db.execute(sql, [name, ingredients, instructions, user_id])
+    recipe_id = db.last_insert_id()
 
-@items_bp.route("/recipe/new", methods=["GET", "POST"])
-@login_required
-def new_recipe():
-    if request.method == "POST":
-        name = request.form["name"].strip()
-        category = request.form["category"]
-        ingredients = request.form["ingredients"].strip()
-        instructions = request.form["instructions"].strip()
-        if not name or not ingredients or not instructions:
-            flash("Täytä kaikki kentät.")
-        else:
-            db = get_db()
-            db.execute(
-                "INSERT INTO recipes (name, category, ingredients, instructions, user_id) VALUES (?,?,?,?,?)",
-                (name, category, ingredients, instructions, g.user["id"])
-            )
-            db.commit()
-            return redirect(url_for("items.index"))
-    return render_template("recipe_form.html", recipe=None, categories=CATEGORIES)
+    sql = "INSERT INTO recipe_classes (recipe_id, title, value) VALUES (?, ?, ?)"
+    for title, value in classes:
+        db.execute(sql, [recipe_id, title, value])
 
-@items_bp.route("/recipe/<int:id>/edit", methods=["GET", "POST"])
-@login_required
-def edit_recipe(id):
-    db = get_db()
-    recipe = db.execute("SELECT * FROM recipes WHERE id = ?", (id,)).fetchone()
-    if recipe is None or recipe["user_id"] != g.user["id"]:
-        abort(403)
-    if request.method == "POST":
-        name = request.form["name"].strip()
-        category = request.form["category"]
-        ingredients = request.form["ingredients"].strip()
-        instructions = request.form["instructions"].strip()
-        if not name or not ingredients or not instructions:
-            flash("Täytä kaikki kentät.")
-        else:
-            db.execute(
-                "UPDATE recipes SET name=?, category=?, ingredients=?, instructions=? WHERE id=?",
-                (name, category, ingredients, instructions, id)
-            )
-            db.commit()
-            return redirect(url_for("items.detail", id=id))
-    return render_template("recipe_form.html", recipe=recipe, categories=CATEGORIES)
+    return recipe_id
 
-@items_bp.route("/recipe/<int:id>/delete", methods=["POST"])
-@login_required
-def delete_recipe(id):
-    db = get_db()
-    recipe = db.execute("SELECT * FROM recipes WHERE id = ?", (id,)).fetchone()
-    if recipe is None or recipe["user_id"] != g.user["id"]:
-        abort(403)
-    db.execute("DELETE FROM recipes WHERE id = ?", (id,))
-    db.commit()
-    return redirect(url_for("items.index"))
+def update_recipe(recipe_id, name, ingredients, instructions, classes):
+    sql = """UPDATE recipes
+             SET name = ?, ingredients = ?, instructions = ?
+             WHERE id = ?"""
+    db.execute(sql, [name, ingredients, instructions, recipe_id])
 
-@items_bp.route("/recipe/<int:id>")
-@login_required
-def detail(id):
-    db = get_db()
-    recipe = db.execute(
-        "SELECT r.*, u.username FROM recipes r JOIN users u ON r.user_id = u.id WHERE r.id = ?", (id,)
-    ).fetchone()
-    if recipe is None:
-        abort(404)
-    comments = db.execute(
-        "SELECT c.*, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.recipe_id = ? ORDER BY c.created_at DESC",
-        (id,)
-    ).fetchall()
-    avg = db.execute("SELECT AVG(stars) FROM comments WHERE recipe_id = ?", (id,)).fetchone()[0]
-    return render_template("detail.html", recipe=recipe, comments=comments, avg=round(avg,1) if avg else None)
+    db.execute("DELETE FROM recipe_classes WHERE recipe_id = ?", [recipe_id])
+    sql = "INSERT INTO recipe_classes (recipe_id, title, value) VALUES (?, ?, ?)"
+    for title, value in classes:
+        db.execute(sql, [recipe_id, title, value])
 
-@items_bp.route("/recipe/<int:id>/comment", methods=["POST"])
-@login_required
-def add_comment(id):
-    stars = request.form.get("stars", type=int)
-    content = request.form.get("content", "").strip()
-    if not stars or stars < 1 or stars > 5:
-        flash("Valitse tähtiarvio.")
-        return redirect(url_for("items.detail", id=id))
-    db = get_db()
-    db.execute(
-        "INSERT INTO comments (recipe_id, user_id, stars, content) VALUES (?,?,?,?)",
-        (id, g.user["id"], stars, content)
-    )
-    db.commit()
-    return redirect(url_for("items.detail", id=id))
+def remove_recipe(recipe_id):
+    db.execute("DELETE FROM recipes WHERE id = ?", [recipe_id])
 
-@items_bp.route("/comment/<int:id>/delete", methods=["POST"])
-@login_required
-def delete_comment(id):
-    db = get_db()
-    comment = db.execute("SELECT * FROM comments WHERE id = ?", (id,)).fetchone()
-    if comment is None or comment["user_id"] != g.user["id"]:
-        abort(403)
-    recipe_id = comment["recipe_id"]
-    db.execute("DELETE FROM comments WHERE id = ?", (id,))
-    db.commit()
-    return redirect(url_for("items.detail", id=recipe_id))
+def get_recipe(recipe_id):
+    sql = """SELECT r.id, r.name, r.ingredients, r.instructions,
+                    r.created_at, r.user_id, u.username
+             FROM recipes r, users u
+             WHERE r.user_id = u.id AND r.id = ?"""
+    result = db.query(sql, [recipe_id])
+    return result[0] if result else None
+
+def get_recipe_classes(recipe_id):
+    sql = "SELECT title, value FROM recipe_classes WHERE recipe_id = ?"
+    return db.query(sql, [recipe_id])
+
+def get_all_recipes():
+    sql = """SELECT r.id, r.name, r.created_at, r.user_id, u.username
+             FROM recipes r, users u
+             WHERE r.user_id = u.id
+             ORDER BY r.id DESC"""
+    return db.query(sql)
+
+def find_recipes(query):
+    sql = """SELECT r.id, r.name, r.created_at, r.user_id, u.username
+             FROM recipes r, users u
+             WHERE r.user_id = u.id
+               AND (r.name LIKE ? OR r.ingredients LIKE ?)
+             ORDER BY r.id DESC"""
+    like = "%" + query + "%"
+    return db.query(sql, [like, like])
+
+def get_comments(recipe_id):
+    sql = """SELECT c.id, c.content, c.stars, c.created_at,
+                    c.user_id, u.username
+             FROM comments c, users u
+             WHERE c.user_id = u.id AND c.recipe_id = ?
+             ORDER BY c.id DESC"""
+    return db.query(sql, [recipe_id])
+
+def add_comment(recipe_id, user_id, content, stars):
+    sql = """INSERT INTO comments (recipe_id, user_id, content, stars)
+             VALUES (?, ?, ?, ?)"""
+    db.execute(sql, [recipe_id, user_id, content, stars])
+
+def remove_comment(comment_id):
+    db.execute("DELETE FROM comments WHERE id = ?", [comment_id])
+
+def get_comment(comment_id):
+    sql = "SELECT id, user_id, recipe_id FROM comments WHERE id = ?"
+    result = db.query(sql, [comment_id])
+    return result[0] if result else None
+
+def get_stats():
+    """Sovelluksen yleiset tilastot etusivulle."""
+    total_recipes = db.query("SELECT COUNT(*) AS c FROM recipes")[0]["c"]
+    total_users = db.query("SELECT COUNT(*) AS c FROM users")[0]["c"]
+    total_comments = db.query("SELECT COUNT(*) AS c FROM comments")[0]["c"]
+    return {
+        "recipes": total_recipes,
+        "users": total_users,
+        "comments": total_comments,
+    }

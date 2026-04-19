@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Search recipes</h1>
+
+<form action="/find" method="get" class="search-form">
+    <input type="text" name="query" value="{{ query }}"
+           placeholder="Name or ingredient..." maxlength="100">
+    <input class="btn" type="submit" value="Hae">
+</form>
+
+{% if query %}
+    <h2>Search results for "{{ query }}"</h2>
+    {% if results %}
+    <ul class="recipe-list">
+        {% for recipe in results %}
+        <li>
+            <a href="/recipe/{{ recipe.id }}">{{ recipe.name }}</a>
+            <span class="meta">
+                added
+                <a href="/user/{{ recipe.user_id }}">{{ recipe.username }}</a>
+                &middot; {{ recipe.created_at }}
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No search results.</p>
+    {% endif %}
+{% endif %}
+{% endblock %}

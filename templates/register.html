@@ -1,12 +1,28 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
+
 {% block content %}
-<h2>Luo tunnus</h2>
-<form method="post" style="max-width:360px">
-  <label>Käyttäjänimi</label>
-  <input type="text" name="username" required>
-  <label>Salasana</label>
-  <input type="password" name="password" required>
-  <button type="submit">Luo tili</button>
+<h1>Create a new account</h1>
+
+<form action="/create_user" method="post">
+    <p>
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" maxlength="20" required>
+    </p>
+
+    <p>
+        <label for="password1">Password:</label><br>
+        <input type="password" id="password1" name="password1" required>
+    </p>
+
+    <p>
+        <label for="password2">Confirm password:</label><br>
+        <input type="password" id="password2" name="password2" required>
+    </p>
+
+    <p class="actions">
+        <input class="btn" type="submit" value="Create an account">
+    </p>
 </form>
-<p>Jo tunnus? <a href="{{ url_for('users.login') }}">Kirjaudu</a></p>
+
+<p>Do you already have an account? <a href="/login">Sign in</a>.</p>
 {% endblock %}

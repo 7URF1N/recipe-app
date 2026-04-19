@@ -1,74 +1,63 @@
-import functools
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, g
-from db import get_db
+from werkzeug.security import check_password_hash, generate_password_hash
+import db
 
-users_bp = Blueprint("users", __name__)
+def get_user(user_id):
+    sql = "SELECT id, username FROM users WHERE id = ?"
+    result = db.query(sql, [user_id])
+    return result[0] if result else None
 
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped(**kwargs):
-        if g.user is None:
-            return redirect(url_for("users.login"))
-        return view(**kwargs)
-    return wrapped
+def get_user_by_username(username):
+    sql = "SELECT id, username, password_hash FROM users WHERE username = ?"
+    result = db.query(sql, [username])
+    return result[0] if result else None
 
-@users_bp.before_app_request
-def load_user():
-    user_id = session.get("user_id")
-    if user_id:
-        g.user = get_db().execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-    else:
-        g.user = None
+def create_user(username, password):
+    password_hash = generate_password_hash(password)
+    sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
+    db.execute(sql, [username, password_hash])
 
-@users_bp.route("/")
-def index():
-    return redirect(url_for("items.index"))
+def check_login(username, password):
+    user = get_user_by_username(username)
+    if not user:
+        return None
+    if check_password_hash(user["password_hash"], password):
+        return user["id"]
+    return None
 
-@users_bp.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        db = get_db()
-        error = None
-        if not username:
-            error = "Käyttäjänimi puuttuu."
-        elif not password:
-            error = "Salasana puuttuu."
-        elif db.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone():
-            error = "Käyttäjänimi on jo käytössä."
-        if error is None:
-            db.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            db.commit()
-            flash("Tili luotu! Kirjaudu sisään.")
-            return redirect(url_for("users.login"))
-        flash(error)
-    return render_template("register.html")
+def get_user_recipes(user_id):
+    sql = """SELECT id, name, created_at
+             FROM recipes
+             WHERE user_id = ?
+             ORDER BY id DESC"""
+    return db.query(sql, [user_id])
 
-@users_bp.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        db = get_db()
-        user = db.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
-        if user is None:
-            flash("Väärä käyttäjänimi tai salasana.")
-        else:
-            session.clear()
-            session["user_id"] = user["id"]
-            return redirect(url_for("items.index"))
-    return render_template("login.html")
+def get_user_stats(user_id):
+    recipe_count = db.query(
+        "SELECT COUNT(*) AS c FROM recipes WHERE user_id = ?", [user_id]
+    )[0]["c"]
 
-@users_bp.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("users.login"))
+    comment_count = db.query(
+        "SELECT COUNT(*) AS c FROM comments WHERE user_id = ?", [user_id]
+    )[0]["c"]
 
-@users_bp.route("/profile")
-@login_required
-def profile():
-    db = get_db()
-    recipes = db.execute("SELECT COUNT(*) FROM recipes WHERE user_id = ?", (g.user["id"],)).fetchone()[0]
-    comments = db.execute("SELECT COUNT(*) FROM comments WHERE user_id = ?", (g.user["id"],)).fetchone()[0]
-    return render_template("profile.html", recipe_count=recipes, comment_count=comments)
+    received_comments = db.query(
+        """SELECT COUNT(*) AS c
+           FROM comments c, recipes r
+           WHERE c.recipe_id = r.id AND r.user_id = ?""",
+        [user_id],
+    )[0]["c"]
+
+    avg_row = db.query(
+        """SELECT AVG(c.stars) AS avg
+           FROM comments c, recipes r
+           WHERE c.recipe_id = r.id AND r.user_id = ?""",
+        [user_id],
+    )[0]
+    avg_stars = round(avg_row["avg"], 2) if avg_row["avg"] else None
+
+    return {
+        "recipes": recipe_count,
+        "comments_given": comment_count,
+        "comments_received": received_comments,
+        "avg_stars": avg_stars,
+    }

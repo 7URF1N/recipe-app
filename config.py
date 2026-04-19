@@ -1,5 +1,1 @@
-import os
-
-class Config:
-    SECRET_KEY = "dev-secret-key"
-    DATABASE = "recipes.db"
+secret_key = "i-will-replace-this-with-my-own-key-in-production"
