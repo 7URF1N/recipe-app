@@ -1,9 +1,9 @@
-# ReseptiApp
+-ReseptiApp
 
 Flaskilla ja SQLitellä toteutettu verkkosovellus, jonka avulla käyttäjät voivat
 lisätä, selata ja arvioida ruokareseptejä.
 
-## Sovelluksen toiminnot
+-Sovelluksen toiminnot
 
 - Etusivu näyttää kaikki lisätyt reseptit sekä sovelluksen tilastot
   (reseptien, käyttäjien ja kommenttien määrät). **Etusivun voi nähdä myös
@@ -24,83 +24,61 @@ lisätä, selata ja arvioida ruokareseptejä.
 - Hakutoiminto hakee reseptin nimen tai aineksen perusteella.
 - Lomakkeet on suojattu **CSRF-tokeneilla** kurssimateriaalin mallin mukaisesti.
 
-## Asennus ja käynnistys
+-Asennus ja käynnistys
 
-Sovellus toimii Windowsissa, macOSissa ja Linuxissa. Alla olevat ohjeet on
-testattu Python 3.10+ -versiolla.
+1. Kloonaa repository
 
-### 1. Kloonaa repository
-
-```
 git clone https://github.com/7URF1N/recipe-app
 cd recipe-app
-```
 
-### 2. Luo ja aktivoi virtuaaliympäristö
+2. Luo ja aktivoi virtuaaliympäristö
 
-**Windows (PowerShell):**
-```
+Windows (PowerShell):
 python -m venv venv
 venv\Scripts\activate
-```
 
-**macOS / Linux:**
-```
+macOS / Linux:
 python3 -m venv venv
 source venv/bin/activate
-```
 
-### 3. Asenna riippuvuudet
+3. Asenna riippuvuudet
 
-```
 pip install flask
-```
 
-### 4. Luo tietokanta
+4. Luo tietokanta
 
-Luodaan ensin taulut ja sitten täytetään luokittelujen aloitusdata:
-
-**Windows (PowerShell):**
-```
+Windows (PowerShell):
 sqlite3 database.db < schema.sql
 sqlite3 database.db < init.sql
-```
 
-**macOS / Linux:**
-```
+macOS / Linux:
 sqlite3 database.db < schema.sql
 sqlite3 database.db < init.sql
-```
 
 Jos koneessasi ei ole `sqlite3`-komentorivityökalua, voit luoda tietokannan
 Pythonilla:
 
-```
 python -c "import sqlite3; con=sqlite3.connect('database.db'); \
 con.executescript(open('schema.sql').read()); \
 con.executescript(open('init.sql').read()); con.commit(); con.close()"
-```
 
 Jos sinulla on jo vanha `database.db`, poista se ennen kuin luot uuden:
 
 - Windows: `del database.db`
 - macOS / Linux: `rm database.db`
 
-### 5. Käynnistä sovellus
+5. Käynnistä sovellus
 
-```
 flask --app app run
-```
 
 tai vaihtoehtoisesti:
 
-```
 python app.py
-```
+
 
 Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
 
-## Sovelluksen testaaminen
+-Sovelluksen testaaminen
 
 1. Avaa selain osoitteessa <http://127.0.0.1:5000>. Etusivu näkyy myös ilman
    kirjautumista.
