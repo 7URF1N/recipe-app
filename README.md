@@ -24,57 +24,69 @@ lisätä, selata ja arvioida ruokareseptejä.
 - Hakutoiminto hakee reseptin nimen tai aineksen perusteella.
 - Lomakkeet on suojattu **CSRF-tokeneilla** kurssimateriaalin mallin mukaisesti.
 
--Asennus ja käynnistys
+## Asennus ja käynnistys
 
-1. Kloonaa repository
+### 1. Kloonaa repository
 
+```
 git clone https://github.com/7URF1N/recipe-app
 cd recipe-app
+```
 
-2. Luo ja aktivoi virtuaaliympäristö
+### 2. Luo ja aktivoi virtuaaliympäristö
 
-Windows (PowerShell):
+**Windows (PowerShell):**
+
+```
 python -m venv venv
 venv\Scripts\activate
+```
 
-macOS / Linux:
+**macOS / Linux:**
+
+```
 python3 -m venv venv
 source venv/bin/activate
+```
 
-3. Asenna riippuvuudet
+### 3. Asenna riippuvuudet
 
+```
 pip install flask
+```
 
-4. Luo tietokanta
+### 4. Luo tietokanta
 
-Windows (PowerShell):
+```
 sqlite3 database.db < schema.sql
 sqlite3 database.db < init.sql
-
-macOS / Linux:
-sqlite3 database.db < schema.sql
-sqlite3 database.db < init.sql
+```
 
 Jos koneessasi ei ole `sqlite3`-komentorivityökalua, voit luoda tietokannan
 Pythonilla:
 
+```
 python -c "import sqlite3; con=sqlite3.connect('database.db'); \
 con.executescript(open('schema.sql').read()); \
 con.executescript(open('init.sql').read()); con.commit(); con.close()"
+```
 
 Jos sinulla on jo vanha `database.db`, poista se ennen kuin luot uuden:
 
 - Windows: `del database.db`
 - macOS / Linux: `rm database.db`
 
-5. Käynnistä sovellus
+### 5. Käynnistä sovellus
 
+```
 flask --app app run
+```
 
 tai vaihtoehtoisesti:
 
+```
 python app.py
-
+```
 
 Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
 
