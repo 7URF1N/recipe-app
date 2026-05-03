@@ -34,3 +34,8 @@ CREATE TABLE comments (
     stars INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE INDEX idx_recipes_user_id ON recipes(user_id);
+CREATE INDEX idx_comments_recipe_id ON comments(recipe_id);
+CREATE INDEX idx_comments_user_id ON comments(user_id);
+CREATE INDEX idx_recipe_classes_recipe_id ON recipe_classes(recipe_id);

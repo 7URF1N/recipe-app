@@ -1,7 +1,10 @@
+PAGE_SIZE = 20
+
 import secrets
 import sqlite3
 
-from flask import Flask, abort, flash, redirect, render_template, request, session
+from flask import (Flask, abort, flash, redirect,
+                   render_template, request, session)
 
 import config
 import items
@@ -22,18 +25,35 @@ def check_csrf():
 
 @app.route("/")
 def index():
-    all_recipes = items.get_all_recipes()
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
+    total = items.count_all_recipes()
+    page_count = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    if page > page_count:
+        page = page_count
+    all_recipes = items.get_all_recipes(page, PAGE_SIZE)
     stats = items.get_stats()
-    return render_template("index.html", recipes=all_recipes, stats=stats)
+    return render_template("index.html", recipes=all_recipes, stats=stats,
+                           page=page, page_count=page_count)
 
 @app.route("/find")
 def find():
     query = request.args.get("query", "").strip()
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
     if query:
-        results = items.find_recipes(query)
+        total = items.count_find_recipes(query)
+        page_count = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+        if page > page_count:
+            page = page_count
+        results = items.find_recipes(query, page, PAGE_SIZE)
     else:
         results = []
-    return render_template("find.html", query=query, results=results)
+        page_count = 1
+    return render_template("find.html", query=query, results=results,
+                           page=page, page_count=page_count)
 
 @app.route("/recipe/<int:recipe_id>")
 def show_recipe(recipe_id):
@@ -60,11 +80,17 @@ def show_user(user_id):
     user = users.get_user(user_id)
     if not user:
         abort(404)
-    recipes = users.get_user_recipes(user_id)
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
     stats = users.get_user_stats(user_id)
-    return render_template(
-        "show_user.html", user=user, recipes=recipes, stats=stats
-    )
+    total = stats["recipes"]
+    page_count = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    if page > page_count:
+        page = page_count
+    recipes = users.get_user_recipes(user_id, page, PAGE_SIZE)
+    return render_template("show_user.html", user=user, recipes=recipes,
+                           stats=stats, page=page, page_count=page_count)
 
 @app.route("/new_recipe")
 def new_recipe():

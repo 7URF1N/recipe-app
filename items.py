@@ -15,7 +15,8 @@ def add_recipe(name, ingredients, instructions, user_id, classes):
     db.execute(sql, [name, ingredients, instructions, user_id])
     recipe_id = db.last_insert_id()
 
-    sql = "INSERT INTO recipe_classes (recipe_id, title, value) VALUES (?, ?, ?)"
+    sql = """INSERT INTO recipe_classes (recipe_id, title, value)
+             VALUES (?, ?, ?)"""
     for title, value in classes:
         db.execute(sql, [recipe_id, title, value])
 
@@ -28,7 +29,8 @@ def update_recipe(recipe_id, name, ingredients, instructions, classes):
     db.execute(sql, [name, ingredients, instructions, recipe_id])
 
     db.execute("DELETE FROM recipe_classes WHERE recipe_id = ?", [recipe_id])
-    sql = "INSERT INTO recipe_classes (recipe_id, title, value) VALUES (?, ?, ?)"
+    sql = """INSERT INTO recipe_classes (recipe_id, title, value)
+             VALUES (?, ?, ?)"""
     for title, value in classes:
         db.execute(sql, [recipe_id, title, value])
 
@@ -47,21 +49,34 @@ def get_recipe_classes(recipe_id):
     sql = "SELECT title, value FROM recipe_classes WHERE recipe_id = ?"
     return db.query(sql, [recipe_id])
 
-def get_all_recipes():
+def get_all_recipes(page, page_size):
     sql = """SELECT r.id, r.name, r.created_at, r.user_id, u.username
              FROM recipes r, users u
              WHERE r.user_id = u.id
-             ORDER BY r.id DESC"""
-    return db.query(sql)
+             ORDER BY r.id DESC
+             LIMIT ? OFFSET ?"""
+    offset = (page - 1) * page_size
+    return db.query(sql, [page_size, offset])
 
-def find_recipes(query):
+def count_all_recipes():
+    return db.query("SELECT COUNT(*) AS c FROM recipes")[0]["c"]
+
+def find_recipes(query, page, page_size):
     sql = """SELECT r.id, r.name, r.created_at, r.user_id, u.username
              FROM recipes r, users u
              WHERE r.user_id = u.id
                AND (r.name LIKE ? OR r.ingredients LIKE ?)
-             ORDER BY r.id DESC"""
+             ORDER BY r.id DESC
+             LIMIT ? OFFSET ?"""
     like = "%" + query + "%"
-    return db.query(sql, [like, like])
+    offset = (page - 1) * page_size
+    return db.query(sql, [like, like, page_size, offset])
+
+def count_find_recipes(query):
+    sql = """SELECT COUNT(*) AS c FROM recipes
+             WHERE name LIKE ? OR ingredients LIKE ?"""
+    like = "%" + query + "%"
+    return db.query(sql, [like, like])[0]["c"]
 
 def get_comments(recipe_id):
     sql = """SELECT c.id, c.content, c.stars, c.created_at,
@@ -85,7 +100,7 @@ def get_comment(comment_id):
     return result[0] if result else None
 
 def get_stats():
-    """Sovelluksen yleiset tilastot etusivulle."""
+    """General application statistics on the homepage."""
     total_recipes = db.query("SELECT COUNT(*) AS c FROM recipes")[0]["c"]
     total_users = db.query("SELECT COUNT(*) AS c FROM users")[0]["c"]
     total_comments = db.query("SELECT COUNT(*) AS c FROM comments")[0]["c"]

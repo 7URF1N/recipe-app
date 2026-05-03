@@ -24,12 +24,14 @@ def check_login(username, password):
         return user["id"]
     return None
 
-def get_user_recipes(user_id):
+def get_user_recipes(user_id, page, page_size):
     sql = """SELECT id, name, created_at
              FROM recipes
              WHERE user_id = ?
-             ORDER BY id DESC"""
-    return db.query(sql, [user_id])
+             ORDER BY id DESC
+             LIMIT ? OFFSET ?"""
+    offset = (page - 1) * page_size
+    return db.query(sql, [user_id, page_size, offset])
 
 def get_user_stats(user_id):
     recipe_count = db.query(

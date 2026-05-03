@@ -4,9 +4,10 @@
 <h1>Search recipes</h1>
 
 <form action="/find" method="get" class="search-form">
-    <input type="text" name="query" value="{{ query }}"
+    <label for="query">Search:</label>
+    <input type="text" id="query" name="query" value="{{ query }}"
            placeholder="Name or ingredient..." maxlength="100">
-    <input class="btn" type="submit" value="Hae">
+    <input class="btn" type="submit" value="Search">
 </form>
 
 {% if query %}
@@ -24,6 +25,17 @@
         </li>
         {% endfor %}
     </ul>
+    {% if page_count > 1 %}
+    <p class="pagination">
+        {% if page > 1 %}
+            <a href="?query={{ query }}&page={{ page - 1 }}">« Previous</a>
+        {% endif %}
+        Page {{ page }} / {{ page_count }}
+        {% if page < page_count %}
+            <a href="?query={{ query }}&page={{ page + 1 }}">Next »</a>
+        {% endif %}
+    </p>
+    {% endif %}
     {% else %}
     <p>No search results.</p>
     {% endif %}

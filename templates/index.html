@@ -33,10 +33,21 @@
     </li>
     {% endfor %}
 </ul>
+{% if page_count > 1 %}
+<p class="pagination">
+    {% if page > 1 %}
+        <a href="?page={{ page - 1 }}">« Previous</a>
+    {% endif %}
+    Page {{ page }} / {{ page_count }}
+    {% if page < page_count %}
+        <a href="?page={{ page + 1 }}">Next »</a>
+    {% endif %}
+</p>
+{% endif %}
 {% else %}
 <p>No recipes have been added yet.</p>
 {% if not session.user_id %}
-<p><a href="/register">Sign up</a> and add your first recipe!</p>
+<p><a href="/register">Register</a> and add your first recipe!</p>
 {% endif %}
 {% endif %}
 {% endblock %}

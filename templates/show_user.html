@@ -6,11 +6,11 @@
 <section class="stats">
     <div class="stat-box">
         <div class="stat-num">{{ stats.recipes }}</div>
-        <div class="stat-label">added recipe</div>
+        <div class="stat-label">added recipes</div>
     </div>
     <div class="stat-box">
         <div class="stat-num">{{ stats.comments_given }}</div>
-        <div class="stat-label">given comment</div>
+        <div class="stat-label">given comments</div>
     </div>
     <div class="stat-box">
         <div class="stat-num">{{ stats.comments_received }}</div>
@@ -24,7 +24,7 @@
     </div>
 </section>
 
-<h2>{{ user.username }}:n receips</h2>
+<h2>Recipes by {{ user.username }}</h2>
 
 {% if recipes %}
 <ul class="recipe-list">
@@ -35,6 +35,17 @@
     </li>
     {% endfor %}
 </ul>
+{% if page_count > 1 %}
+<p class="pagination">
+    {% if page > 1 %}
+        <a href="?page={{ page - 1 }}">« Previous</a>
+    {% endif %}
+    Page {{ page }} / {{ page_count }}
+    {% if page < page_count %}
+        <a href="?page={{ page + 1 }}">Next »</a>
+    {% endif %}
+</p>
+{% endif %}
 {% else %}
 <p>No recipes.</p>
 {% endif %}
