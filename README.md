@@ -111,4 +111,4 @@ Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
 Vieras-avaimet on päällä (`PRAGMA foreign_keys = ON`), joten reseptin
 poistaminen poistaa automaattisesti myös sen kommentit ja luokittelut.
 
-Pylint score: Your code has been rated at 8.15/10
+**Pylint score:** Your code has been rated at 8.15/10
