@@ -1,32 +1,30 @@
--ReseptiApp
+# ReseptiApp
 
-Flaskilla ja SQLitellä toteutettu verkkosovellus, jonka avulla käyttäjät voivat
-lisätä, selata ja arvioida ruokareseptejä.
+Flaskilla ja SQLitellä toteutettu verkkosovellus, jonka avulla käyttäjät
+voivat lisätä, selata ja arvioida ruokareseptejä.
 
--Sovelluksen toiminnot
+## Sovelluksen toiminnot
 
 - Etusivu näyttää kaikki lisätyt reseptit sekä sovelluksen tilastot
-  (reseptien, käyttäjien ja kommenttien määrät). **Etusivun voi nähdä myös
-  ilman kirjautumista.**
+  (reseptien, käyttäjien ja kommenttien määrät). Etusivun voi nähdä myös
+  ilman kirjautumista.
 - Käyttäjä voi rekisteröityä ja kirjautua sisään. Salasanat tallennetaan
   hashattuna (werkzeug).
 - Kirjautunut käyttäjä voi lisätä uuden reseptin, jolle annetaan nimi,
-  ainekset, ohjeet sekä yksi tai useampi luokittelu.
-- Luokittelut ovat valmiiksi tietokannassa. Jokaiselle reseptille voi valita
-  arvoja kategorioista **Tyyppi**, **Keittiö** ja **Ruokavalio**.
+  ainekset, ohjeet sekä yksi tai useampi luokittelu kategorioista
+  **Tyyppi**, **Keittiö** ja **Ruokavalio**.
 - Käyttäjä voi muokata ja poistaa vain omia reseptejään.
-- Käyttäjä voi jättää **toisen käyttäjän reseptiin** kommentin ja tähtiarvion
-  (1–5). Kommentit näkyvät reseptin sivulla, ja reseptin keskiarvo lasketaan
-  arvioista.
-- Käyttäjäsivu näyttää käyttäjän lisäämät reseptit sekä tilastot: kuinka monta
-  reseptiä ja kommenttia käyttäjä on lisännyt, kuinka monta kommenttia hänen
-  resepteihinsä on jätetty ja mikä on reseptien keskimääräinen arvio.
-- Hakutoiminto hakee reseptin nimen tai aineksen perusteella.
-- Lomakkeet on suojattu **CSRF-tokeneilla** kurssimateriaalin mallin mukaisesti.
+- Käyttäjä voi jättää toisen käyttäjän reseptiin kommentin ja tähtiarvion
+  (1–5). Reseptin keskiarvo lasketaan arvioista.
+- Käyttäjäsivu näyttää käyttäjän reseptit sekä tilastot: lisättyjen
+  reseptien ja kommenttien määrät, saatujen kommenttien määrän ja
+  reseptien keskimääräisen arvion.
+- Hakutoiminto etsii reseptin nimen tai aineksen perusteella.
+- Lomakkeet on suojattu CSRF-tokeneilla kurssimateriaalin mukaisesti.
 
 ## Asennus ja käynnistys
 
-### 1. Kloonaa repository
+### 1. Kloonaa repositorio
 
 ```
 git clone https://github.com/7URF1N/recipe-app
@@ -90,7 +88,7 @@ python app.py
 
 Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
 
--Sovelluksen testaaminen
+## Sovelluksen testaaminen
 
 1. Avaa selain osoitteessa <http://127.0.0.1:5000>. Etusivu näkyy myös ilman
    kirjautumista.
@@ -100,15 +98,26 @@ Sovellus käynnistyy osoitteeseen <http://127.0.0.1:5000>.
    luokitteluja eri kategorioista (esim. Tyyppi: *Pääruoka*, Keittiö:
    *Italialainen*, Ruokavalio: *Kasvis*). Paina **Tallenna**.
 5. Siirry reseptin sivulle etusivun kautta. Kokeile **Muokkaa**- ja
-   **Poista**-nappeja.
+   **Poista**-painikkeita.
 6. Luo toinen tunnus ja kirjaudu sillä sisään. Avaa ensimmäisen käyttäjän
-   resepti ja jätä siihen kommentti sekä tähtiarvio. Kommentin pitäisi näkyä
-   reseptin sivulla, ja reseptin keskiarvon pitäisi päivittyä.
-7. Klikkaa navigointipalkissa käyttäjänimeäsi. Käyttäjäsivu näyttää tilastot
-   ja omat reseptisi.
+   resepti ja jätä siihen kommentti sekä tähtiarvio. Kommentin pitäisi
+   näkyä reseptin sivulla, ja reseptin keskiarvon pitäisi päivittyä.
+7. Klikkaa navigointipalkissa käyttäjänimeäsi. Käyttäjäsivu näyttää
+   tilastot ja omat reseptisi.
 8. Kokeile hakutoimintoa navigointipalkin **Haku**-linkin kautta.
 
-Vieras-avaimet on päällä (`PRAGMA foreign_keys = ON`), joten reseptin
-poistaminen poistaa automaattisesti myös sen kommentit ja luokittelut.
+> Vierasavaimet ovat päällä (`PRAGMA foreign_keys = ON`), joten reseptin
+> poistaminen poistaa automaattisesti myös sen kommentit ja luokittelut.
 
-**Pylint score:** Your code has been rated at 8.15/10
+## Pylint
+
+Sovelluksen tyyli on tarkastettu Pylint-työkalulla:
+
+```
+pip install pylint
+pylint app.py db.py items.py users.py config.py
+```
+
+**Tulos:** `Your code has been rated at 8.15/10`
+
+Tarkempi raportti on tiedostossa [pylint-report.md](pylint-report.md).
